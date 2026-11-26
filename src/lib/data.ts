@@ -65,24 +65,6 @@ export const formatDate = (iso: string) => {
   return `${d}/${m}/${y}`;
 };
 
-/** Bỏ dấu tiếng Việt để tìm kiếm không phân biệt dấu */
-export const normalize = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
-    .toLowerCase();
-
-export const searchProducts = (q: string) => {
-  const terms = normalize(q).split(/\s+/).filter(Boolean);
-  if (!terms.length) return [];
-  return products.filter((p) => {
-    const hay = normalize(`${p.name} ${p.sku}`);
-    return terms.every((t) => hay.includes(t));
-  });
-};
-
 /** Sản phẩm "hot sale": giảm giá nhiều nhất, tối đa 2 sản phẩm mỗi danh mục cho đa dạng */
 export const hotSale = (n = 8) => {
   const perCat = new Map<string, number>();

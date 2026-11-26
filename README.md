@@ -1,6 +1,6 @@
-# Nội thất P-Home — website
+# Nội thất P-Home — website (noithatphome.net)
 
-Website của Công ty TNHH Trang trí Nội thất P-Home, viết bằng Next.js 16 (App Router), React 19, Tailwind CSS 4 và framer-motion. Giao diện dựa trên web cũ noithatphome.com.
+Website của Công ty TNHH Trang trí Nội thất P-Home, viết bằng Next.js 16 (App Router), React 19, Tailwind CSS 4 và framer-motion. Web được **xuất tĩnh** (HTML/CSS/JS) để chạy trên shared hosting, không cần Node.js.
 
 ## Chạy trên máy
 
@@ -11,12 +11,21 @@ npm run dev -- --webpack   # http://localhost:3000
 
 Dùng `--webpack` vì Turbopack đang bị lỗi "Next.js package not found" khi tự tải lại trang trên máy Windows của dự án.
 
-Build bản chạy thật:
+## Build và đưa lên hosting
 
 ```bash
 npm run build
-npm run start
 ```
+
+Kết quả nằm trong thư mục **`out/`**. Upload **toàn bộ nội dung bên trong `out/`** (không phải chính thư mục `out`) vào thư mục gốc của tên miền trên hosting, thường là `public_html/`. Nhớ upload cả file ẩn `.htaccess` (cấu hình trang 404 và bộ nhớ đệm cho Apache/LiteSpeed).
+
+Xem thử bản tĩnh trên máy trước khi upload:
+
+```bash
+npx serve out
+```
+
+Cấu hình xuất tĩnh nằm trong `next.config.ts`: `output: "export"`, `trailingSlash: true` (mỗi trang là `thu-muc/index.html`), `images.unoptimized: true` (dùng ảnh gốc). Trang tìm kiếm lọc sản phẩm ngay trên trình duyệt.
 
 ## Cấu trúc
 
@@ -28,6 +37,7 @@ npm run start
 | `src/lib/data.ts` | Hàm đọc dữ liệu sản phẩm/bài viết |
 | `src/data/*.json` | Dữ liệu sản phẩm, danh mục, bài viết, chính sách (tạo bởi script bên dưới) |
 | `public/images/` | Logo, slider, banner, ảnh sản phẩm (`sp/`), ảnh bài viết |
+| `public/.htaccess` | Cấu hình Apache/LiteSpeed khi chạy trên shared hosting |
 | `scripts/extract-old-site.mjs` | Script trích dữ liệu từ bản clone web cũ |
 
 Đổi hotline/email/địa chỉ: sửa `src/lib/site.ts`.
@@ -40,7 +50,11 @@ Bản clone web cũ (`raw-clone/`) **không nằm trong git**. Script mặc đ�
 npm run extract
 ```
 
-Script ghi đè `src/data/*.json` và chép ảnh còn thiếu vào `public/images/`. Các chỉnh sửa nội dung (ví dụ trang Hướng dẫn thanh toán, email liên hệ) nằm trong script nên chạy lại vẫn giữ nguyên.
+Script ghi đè `src/data/*.json`, chép ảnh còn thiếu và xoá ảnh không còn dùng trong `public/images/`. Mọi chỉnh sửa nội dung nằm trong script nên chạy lại vẫn giữ nguyên:
+
+- bỏ phần thừa của nền tảng cũ (chân trang, popup giỏ hàng, bình luận, sidebar); script **dừng báo lỗi** nếu nội dung còn chữ như "Sapo", "giỏ hàng", "bình luận"…
+- đổi tên miền `noithatphome.com` → `noithatphome.net`
+- trang Hướng dẫn thanh toán chỉ còn thanh toán khi nhận hàng hoặc chuyển khoản; email liên hệ `kientruc.p.home@gmail.com`
 
 ## Lưu ý
 

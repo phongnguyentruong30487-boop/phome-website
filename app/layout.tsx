@@ -14,7 +14,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://noithatphome.com"),
+  metadataBase: new URL("https://noithatphome.net"),
   title: {
     default: "Nội thất P-Home – Uy tín, tận tâm",
     template: "%s | Nội thất P-Home",

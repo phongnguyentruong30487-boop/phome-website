@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Màu & font theo giao diện noithatphome.com cũ */
+/* Màu & font theo giao diện web P-Home cũ */
 @theme {
   --color-brand: #23784f;
   --color-brand-dark: #1b5c3d;

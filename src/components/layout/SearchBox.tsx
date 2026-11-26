@@ -4,15 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Search } from "lucide-react";
 
-export default function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?: () => void }) {
+export default function SearchBox({ autoFocus, onDone, initial = "" }: { autoFocus?: boolean; onDone?: () => void; initial?: string }) {
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initial);
 
   function submit(e: FormEvent) {
     e.preventDefault();
     const term = q.trim();
     if (!term) return;
-    router.push(`/tim-kiem?q=${encodeURIComponent(term)}`);
+    // có dấu "/" cuối để khớp với trailingSlash (hosting tĩnh phục vụ tim-kiem/index.html)
+    router.push(`/tim-kiem/?q=${encodeURIComponent(term)}`);
     onDone?.();
   }
 

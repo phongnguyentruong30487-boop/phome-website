@@ -1,0 +1,32 @@
+# Cấu hình cho shared hosting Apache/LiteSpeed (web xuất tĩnh từ Next.js)
+
+DirectoryIndex index.html
+Options -Indexes
+
+# Trang không tồn tại → trang 404 của P-Home
+ErrorDocument 404 /404.html
+
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType text/css .css
+  AddType image/webp .webp
+  AddCharset utf-8 .html .css .js .txt .json
+</IfModule>
+
+# Nén văn bản
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# Bộ nhớ đệm: file trong _next/static có mã băm trong tên → lưu lâu dài; ảnh lưu 30 ngày; HTML luôn kiểm tra bản mới
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(jpe?g|png|gif|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "\.(html|txt)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

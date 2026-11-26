@@ -1,4 +1,4 @@
-// Trích dữ liệu từ bản clone web cũ (noithatphome.com) sang JSON + ảnh cho Next.js
+// Trích dữ liệu từ bản clone web cũ (noithatphome.com — nay là noithatphome.net) sang JSON + ảnh cho Next.js
 //
 // Cách chạy (từ thư mục nextjs-app):   npm run extract
 // Cần thư mục bản clone ở ../raw-clone/raw-clone (cạnh nextjs-app) — không nằm trong git.
@@ -29,6 +29,21 @@ const decode = (s) =>
     .replace(/&([a-z]+);/gi, (m, n) => NAMED[n.toLowerCase()] ?? m);
 const clean = (s) => decode(s.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")).replace(/[ \t\u00a0]+/g, " ").replace(/ *\n */g, "\n").trim();
 const read = (f) => fs.readFileSync(path.join(RAW, f), "utf8");
+/** Lấy đoạn sau `a`, cắt ở dấu mốc kết thúc xuất hiện SỚM NHẤT trong `ends` */
+const cutAt = (s, a, ends) => {
+  const i = s.indexOf(a);
+  if (i < 0) return "";
+  const from = i + a.length;
+  const stops = ends
+    .map((e) => s.indexOf(e, from))
+    .filter((j) => j >= 0)
+    // mốc dạng class="..." nằm giữa thẻ → lùi về dấu "<" mở thẻ để không sót lại mẩu "<div"
+    .map((j) => {
+      const lt = s.lastIndexOf("<", j);
+      return lt >= from && !s.slice(lt, j).includes(">") ? lt : j;
+    });
+  return s.slice(from, stops.length ? Math.min(...stops) : undefined);
+};
 const between = (s, a, b) => {
   const i = s.indexOf(a);
   if (i < 0) return "";
@@ -224,7 +239,9 @@ for (const slug of KEEP_POSTS) {
   const html = read(slug + ".html");
   const title = meta(html, "headline") || clean(between(html, '<h1 class="title-head">', "</h1>"));
   const [d, mo, y] = meta(html, "datePublished").split("-");
-  let body = between(html, 'class="article-details evo-toc-content">', 'class="tag_article"');
+  // Một số bài không có tag_article → phải dừng ở thanh "Bạn đang xem"/footer,
+  // nếu không sẽ kéo theo bình luận spam, sidebar, chân trang Sapo và popup giỏ hàng.
+  let body = cutAt(html, 'class="article-details evo-toc-content">', ['class="tag_article"', 'class="evo-article-toolbar"', "<footer"]);
   body = sanitize(body, `images/tin-tuc/${slug}`);
   // bỏ thẻ h2 đầu nếu trùng tiêu đề
   body = body.replace(/^<h2>[^<]*<\/h2>/, (h) => (clean(h).length > 10 ? h : ""));
@@ -252,6 +269,9 @@ function mustReplace(body, from, to, label) {
 
 // Chỉnh sửa nội dung chính sách theo yêu cầu của P-Home (áp dụng mỗi lần trích lại)
 const POLICY_FIXES = {
+  // Hướng dẫn cũ mô tả giỏ hàng/tài khoản của Sapo — web mới hiển thị quy trình đặt hàng
+  // riêng (BUY_STEPS trong src/lib/site.ts), nên không giữ nội dung cũ.
+  "huong-dan": () => "",
   "quy-dinh-thanh-toan": (b) => {
     // Mục 1: chỉ còn thanh toán khi nhận hàng hoặc chuyển khoản (web mới không có VNPAY/quẹt thẻ)
     const start = b.indexOf("<p>1. Chấp nhận các hình thức thanh toán</p>");
@@ -287,7 +307,24 @@ const mapSrc = decode((read("lien-he.html").match(/<iframe[^>]*src="(https:\/\/w
 const usedCats = categories.filter((c) => products.some((p) => p.category === c.slug)).map(({ slug, name }) => ({ slug, name }));
 if (products.some((p) => p.category === "khac")) usedCats.push({ slug: "khac", name: "Sản phẩm khác" });
 
-const w = (f, d) => fs.writeFileSync(path.join(DATA, f), JSON.stringify(d, null, 1) + "\n");
+// ---------- làm sạch & kiểm tra trước khi ghi ----------
+// Tên miền mới của web
+const OLD_DOMAIN = /noithatphome\.com/g;
+const NEW_DOMAIN = "noithatphome.net";
+// Dấu vết nền tảng Sapo / giỏ hàng / bình luận không được phép lọt vào nội dung
+const FORBIDDEN = [/sapo/i, /bizweb/i, /giỏ hàng/i, /thêm vào giỏ/i, /tổng tiền/i, /bình luận/i, /bạn đang xem/i, /đăng ký nhận bản tin/i];
+
+const w = (f, d) => {
+  const json = JSON.stringify(d, null, 1).replace(OLD_DOMAIN, NEW_DOMAIN);
+  const bad = FORBIDDEN.filter((re) => re.test(json));
+  if (bad.length) {
+    const re = bad[0];
+    const m = json.match(re);
+    const at = json.indexOf(m[0]);
+    throw new Error(`${f} còn nội dung thừa từ web cũ (${bad.join(", ")}): …${json.slice(Math.max(0, at - 80), at + 40)}…`);
+  }
+  fs.writeFileSync(path.join(DATA, f), json + "\n");
+};
 w("products.json", products);
 w("categories.json", usedCats);
 w("posts.json", posts);
@@ -301,6 +338,27 @@ copyImg(path.join(BZ, "100/480/923/files/banner-ke-trang-tri-p-home-gia-xuong3d4
 copyImg(path.join(BZ, "100/480/923/files/banner-he-tu-bep-p-home8722.jpg"), "images/banner", "tu-bep");
 copyImg(path.join(BZ, "100/480/923/files/banner-cty-noi-that-p-homebded.png"), "images/banner", "cong-ty");
 copyImg(path.join(BZ, "100/480/923/themes/904049/assets/faviconddec.png"), "images", "favicon");
+
+// ---------- xoá ảnh cũ không còn dùng trong các thư mục do script tạo ----------
+{
+  const all = ["products.json", "posts.json", "policies.json", "site.json"].map((f) => fs.readFileSync(path.join(DATA, f), "utf8")).join("");
+  let removed = 0;
+  const walk = (d) => {
+    if (!fs.existsSync(d)) return;
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) {
+        walk(p);
+        if (!fs.readdirSync(p).length) fs.rmdirSync(p);
+      } else if (!all.includes("/" + path.relative(PUB, p).split(path.sep).join("/"))) {
+        fs.unlinkSync(p);
+        removed++;
+      }
+    }
+  };
+  for (const dir of ["sp", "tin-tuc", "chinh-sach", "gioi-thieu"]) walk(path.join(PUB, "images", dir));
+  if (removed) console.log(`Đã xoá ${removed} ảnh cũ không còn dùng.`);
+}
 
 console.log("products", products.length, "| posts", posts.length, "| policies", policies.length);
 console.log(Object.entries(products.reduce((a, p) => ((a[p.category] = (a[p.category] || 0) + 1), a), {})));
