@@ -40,6 +40,8 @@ const meta = (html, prop) => {
   return m ? decode(m[1]).trim() : "";
 };
 
+const skipped = []; // file "ảnh" bị bỏ qua vì không phải ảnh thật
+
 // Ảnh: đường dẫn tương đối/tuyệt đối trong HTML -> file cục bộ -> copy vào public
 function localFile(src) {
   if (!src || src.startsWith("data:")) return null;
@@ -49,8 +51,27 @@ function localFile(src) {
   const abs = path.resolve(RAW, p);
   return fs.existsSync(abs) && fs.statSync(abs).isFile() ? abs : null;
 }
+// Nhận diện ảnh theo vài byte đầu: bản clone đôi khi lưu ảnh lỗi thành trang HTML (.html)
+// hoặc lưu ảnh thật với đuôi lạ (.del) → bỏ file không phải ảnh, dùng đuôi theo nội dung.
+function imageExt(abs) {
+  const fd = fs.openSync(abs, "r");
+  const b = Buffer.alloc(12);
+  fs.readSync(fd, b, 0, 12, 0);
+  fs.closeSync(fd);
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return ".jpg";
+  if (b.toString("hex", 0, 4) === "89504e47") return ".png";
+  if (b.toString("ascii", 0, 3) === "GIF") return ".gif";
+  if (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return ".webp";
+  return null;
+}
+
+/** Chép ảnh vào public; trả về null nếu file nguồn không phải ảnh */
 function copyImg(abs, destDir, name) {
-  const ext = path.extname(abs).toLowerCase() || ".jpg";
+  const ext = imageExt(abs);
+  if (!ext) {
+    skipped.push(path.relative(RAW, abs));
+    return null;
+  }
   const rel = `${destDir}/${name}${ext}`;
   const out = path.join(PUB, rel);
   fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -70,7 +91,10 @@ function sanitize(html, imgDir) {
     const abs = localFile(src) || localFile(lazy);
     if (!abs) return "";
     const alt = decode((tag.match(/alt="([^"]*)"/) || [])[1] || "");
-    return `<img src="${copyImg(abs, imgDir, ++n)}" alt="${alt.replace(/"/g, "&quot;")}">`;
+    const src2 = copyImg(abs, imgDir, n + 1);
+    if (!src2) return "";
+    n++;
+    return `<img src="${src2}" alt="${alt.replace(/"/g, "&quot;")}">`;
   });
   const MAP = { h1: "h2", h2: "h2", h3: "h3", h4: "h4", h5: "h4", h6: "h4", p: "p", ul: "ul", ol: "ol", li: "li", strong: "strong", b: "strong", em: "em", i: "em", br: "br", table: "table", thead: "thead", tbody: "tbody", tr: "tr", td: "td", th: "th", blockquote: "blockquote" };
   html = html.replace(/<(\/?)([a-z0-9]+)\b[^>]*?(\/?)>/gi, (m, close, tag) => {
@@ -135,12 +159,14 @@ for (const f of files) {
   const imgs = [];
   for (const m of slider.matchAll(/<a href="([^"]+)"[^>]*>\s*<img[^>]*data-lazy="([^"]+)"/g)) {
     const abs = localFile(m[1]) || localFile(m[2]);
-    if (abs && imgs.length < 8) imgs.push(copyImg(abs, `images/sp/${slug}`, imgs.length + 1));
+    const out = abs && imgs.length < 8 ? copyImg(abs, `images/sp/${slug}`, imgs.length + 1) : null;
+    if (out) imgs.push(out);
   }
   if (!imgs.length) {
     const og = (html.match(/og:image" content="([^"]+)"/) || [])[1];
     const abs = localFile(og) || localFile(og?.replace("/thumb/grande", ""));
-    if (abs) imgs.push(copyImg(abs, `images/sp/${slug}`, 1));
+    const out = abs ? copyImg(abs, `images/sp/${slug}`, 1) : null;
+    if (out) imgs.push(out);
   }
   if (!imgs.length) { warn.push(`no image: ${slug}`); continue; }
 
@@ -282,3 +308,4 @@ console.log("no specs:", products.filter((p) => !p.specs.length).length, "| no d
 console.log("khac:", products.filter((p) => p.category === "khac").map((p) => p.slug).join(", "));
 console.log("map:", mapSrc ? "ok" : "missing", "| about chars:", about.length);
 console.log(warn.join("\n"));
+if (skipped.length) console.log(`Bỏ qua ${skipped.length} file không phải ảnh (ảnh lỗi trong bản clone).`);

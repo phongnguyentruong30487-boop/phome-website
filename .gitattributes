@@ -1,0 +1,10 @@
+# Giữ xuống dòng kiểu LF trong repo cho mọi file văn bản (tránh cảnh báo CRLF trên Windows)
+* text=auto eol=lf
+
+# File nhị phân
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.webp binary
+*.ico binary
