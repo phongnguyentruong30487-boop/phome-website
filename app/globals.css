@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+/* Màu & font theo giao diện noithatphome.com cũ */
+@theme {
+  --color-brand: #23784f;
+  --color-brand-dark: #1b5c3d;
+  --color-brand-darker: #175135;
+  --color-hot: #e41e26;
+  --color-ink: #1c1c1c;
+  --color-line: #ebebeb;
+  --color-soft: #f6f6f6;
+  --font-sans: var(--font-roboto), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #ffffff;
+  color: #333333;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+/* Khung nội dung giống container bootstrap của web cũ */
+.container-site {
+  width: 100%;
+  max-width: 1065px;
+  margin: 0 auto;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Tiêu đề khối giữa trang: chữ in hoa, gạch chân mảnh */
+.section-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+.section-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* Nội dung bài viết / chính sách / giới thiệu lấy từ web cũ */
+.rte {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #333;
+}
+.rte > * + * {
+  margin-top: 0.85em;
+}
+.rte h2 {
+  font-size: 1.35em;
+  font-weight: 700;
+  color: var(--color-brand);
+  margin-top: 1.4em;
+}
+.rte h3,
+.rte h4 {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-top: 1.2em;
+}
+.rte ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.rte ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.rte li + li {
+  margin-top: 0.3em;
+}
+.rte strong {
+  color: var(--color-ink);
+}
+.rte img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1em auto;
+}
+.rte table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+.rte td,
+.rte th {
+  border: 1px solid #e5e5e5;
+  padding: 6px 10px;
+}
+
+/* Ẩn thanh cuộn ngang của dải ảnh nhỏ */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  10%,
+  30% {
+    transform: rotate(-18deg);
+  }
+  20%,
+  40% {
+    transform: rotate(18deg);
+  }
+  50% {
+    transform: rotate(0);
+  }
+}
+.animate-ring {
+  animation: ring 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-ring {
+    animation: none;
+  }
+}
