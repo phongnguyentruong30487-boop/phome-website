@@ -1,6 +1,6 @@
 "use client";
 
-import { MotionConfig, motion, type Variants } from "framer-motion";
+import { MotionConfig, motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -44,17 +44,12 @@ export function Reveal({
   );
 }
 
-const group: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 28 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
-};
-
-/** Lưới/danh sách: các RevealItem bên trong hiện lần lượt. */
+/**
+ * Lưới/danh sách: chỉ còn là div thường (không animate) — RevealItem bên trong
+ * tự hiện dần độc lập, không phụ thuộc việc "truyền" biến thể animation từ cha
+ * xuống con (cách cũ dùng variants cha/con đôi khi bị kẹt ở trạng thái ẩn nếu
+ * component cha chưa thực sự lọt vào viewport đúng lúc con mount).
+ */
 export function RevealGroup({
   children,
   className,
@@ -62,17 +57,7 @@ export function RevealGroup({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <motion.div
-      className={className}
-      variants={group}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.15 }}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
 export function RevealItem({
@@ -83,7 +68,13 @@ export function RevealItem({
   className?: string;
 }) {
   return (
-    <motion.div className={className} variants={item}>
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, ease: EASE }}
+    >
       {children}
     </motion.div>
   );
