@@ -26,8 +26,8 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Slider: chừa 250px bên trái cho danh mục "Tất cả sản phẩm" luôn mở */}
-      <div className="container-site lg:pl-[265px]">
+      {/* Slider */}
+      <div className="container-site">
         <HeroSlider />
       </div>
 

@@ -1,41 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, Menu } from "lucide-react";
 
 type Cat = { slug: string; name: string };
 const VISIBLE = 7;
 
-/**
- * Nút "TẤT CẢ SẢN PHẨM". Ở trang chủ danh sách luôn mở (nằm cạnh slider như web cũ),
- * ở các trang khác chỉ hiện khi rê chuột / bấm vào.
- */
+/** Nút "TẤT CẢ SẢN PHẨM": mở khi rê chuột / bấm vào, đóng khi rê ra hoặc bấm ra ngoài. */
 export default function CategoryMenu({ categories }: { categories: Cat[] }) {
-  const isHome = usePathname() === "/";
   const [open, setOpen] = useState(false);
   const [all, setAll] = useState(false);
   const shown = all ? categories : categories.slice(0, VISIBLE);
-  const visible = isHome || open;
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
 
   return (
     <div
+      ref={rootRef}
       className="relative w-[250px] shrink-0"
-      onMouseEnter={() => !isHome && setOpen(true)}
-      onMouseLeave={() => !isHome && setOpen(false)}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
     >
       <button
         type="button"
-        onClick={() => !isHome && setOpen((v) => !v)}
-        aria-expanded={visible}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="flex h-full w-full items-center gap-2 bg-brand px-3 py-3 text-[14px] font-bold uppercase text-white"
       >
         <Menu className="h-4 w-4" /> Tất cả sản phẩm <ChevronDown className="h-4 w-4" />
       </button>
       <ul
         className={`absolute left-0 top-full z-50 w-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.12)] ${
-          visible ? "block" : "hidden"
+          open ? "block" : "hidden"
         }`}
       >
         {shown.map((c) => (
