@@ -40,6 +40,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# khoá bí mật khi chạy thử Worker trên máy (wrangler dev)
+.dev.vars
+.wrangler/
 
 # vercel
 .vercel

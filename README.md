@@ -61,6 +61,11 @@ Script ghi đè `src/data/*.json`, chép ảnh còn thiếu và xoá ảnh khôn
 - đổi tên miền `noithatphome.com` → `noithatphome.net`
 - trang Hướng dẫn thanh toán chỉ còn thanh toán khi nhận hàng hoặc chuyển khoản; email liên hệ `kientruc.p.home@gmail.com`
 
+## Chatbot AI tư vấn
+
+Nút "Tư vấn" góc phải dưới: chatbot Claude AI tư vấn tủ bếp/tủ áo MDF và thu số điện thoại khách vào Google Sheet.
+Phần máy chủ là Cloudflare Worker nhỏ trong `worker/` (chỉ chạy cho `/api/*`). Cài đặt khoá API và Google Sheet: xem `tools/chatbot/HUONG-DAN.md`.
+
 ## Lưu ý
 
 - Web chưa có backend: nút “Mua ngay” và form liên hệ mở ứng dụng email của khách với nội dung điền sẵn, gửi tới email trong `src/lib/site.ts`.
