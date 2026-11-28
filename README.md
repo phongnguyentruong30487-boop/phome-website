@@ -42,6 +42,11 @@ Cấu hình xuất tĩnh nằm trong `next.config.ts`: `output: "export"`, `trai
 
 Đổi hotline/email/địa chỉ: sửa `src/lib/site.ts`.
 
+## Trang quản trị kéo-thả (sửa giá / thêm sản phẩm / viết blog)
+
+Xem `tools/admin/README.md` — công cụ chạy trên máy, không cần biết code, để sửa giá,
+thêm/sửa/xoá sản phẩm, quản lý danh mục và viết bài blog bằng giao diện kéo-thả.
+
 ## Cập nhật dữ liệu từ web cũ
 
 Bản clone web cũ (`raw-clone/`) **không nằm trong git**. Script mặc định tìm nó ở `../raw-clone/raw-clone/noithatphome.com`, hoặc chỉ định bằng biến `RAW_CLONE_DIR`:
