@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-cd /d "%~dp0.."
+cd /d "D:\001.CLAUDE CODE\2.phome-website\nextjs-app"
 echo.
 echo ================================================
 echo   Dang kiem tra va dua thay doi len website that
