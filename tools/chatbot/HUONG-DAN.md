@@ -59,6 +59,34 @@ Sau đó deploy lại như bình thường (`tools/cap-nhat-len-web.bat`).
 
 Sửa `worker/prompt.ts` (phần "Kiến thức tư vấn" và "Cách tư vấn"), rồi deploy lại. Ví dụ thêm chương trình khuyến mãi, đổi cách xưng hô, thêm vật liệu mới.
 
+## Bản đồ sửa chatbot (muốn đổi gì → sửa file nào)
+
+| Muốn đổi | File | Ghi chú |
+|---|---|---|
+| Kiến thức tư vấn: vật liệu, màu, phụ kiện, kích thước, chính sách | `worker/prompt.ts` → mục "Kiến thức tư vấn" / "Về P-Home" | Hotline, địa chỉ, email lấy từ `src/lib/site.ts` |
+| Cách bot nói chuyện: xưng hô, độ dài, khi nào xin SĐT | `worker/prompt.ts` → mục "Cách tư vấn" | `[[LEAD]]` = bot báo hiện form SĐT; `[[SP:n]]` = link sản phẩm |
+| Sản phẩm / giá bot giới thiệu | Không cần sửa chatbot — sửa bằng trang quản trị (`src/data/products.json`) | Bot đang dùng danh mục `tu-bep`, `tu-ao` (biến `CHAT_PRODUCTS` trong `worker/prompt.ts`) |
+| Câu chào, nút gợi ý nhanh | `src/components/layout/ConsultChat.tsx` → `GREETING`, `QUICK` | |
+| Câu trả lời dự phòng khi AI lỗi | `ConsultChat.tsx` → `FAQS` | Dùng khi chưa có khoá / AI lỗi / chạy `npm run dev` |
+| Giao diện: màu, vị trí nút, kích thước khung | `ConsultChat.tsx` (class Tailwind) | Màu thương hiệu ở `app/globals.css` (`brand`, `hot`) |
+| Form để lại SĐT (thêm ô, đổi chữ) | `ConsultChat.tsx` → form `submitLead`; `worker/index.ts` → `handleLead`; Apps Script → `appendRow` | Thêm cột mới phải sửa cả 3 chỗ |
+| Đổi model AI | Cloudflare biến `CHAT_MODEL` (không cần sửa code) | Mặc định `claude-sonnet-5-5` trong `worker/index.ts` |
+| Độ "suy nghĩ" / độ dài trả lời | `worker/index.ts` → `output_config.effort`, `max_tokens` | |
+| Giới hạn lượt hỏi | `wrangler.jsonc` → `ratelimits` | |
+| Tên miền được phép gọi API | `worker/index.ts` → `ALLOWED_HOSTS` | |
+
+### Kiểm tra sau khi sửa (trước khi đẩy lên web)
+
+```bash
+npx eslint src/components/layout/ConsultChat.tsx worker/
+npx tsc -p worker/tsconfig.json          # kiểm tra code Worker
+npm run build                             # kiểm tra web build được
+npx wrangler@4 deploy --dry-run           # kiểm tra Worker đóng gói được (không deploy)
+```
+
+Sau đó commit và `git push` → Cloudflare tự build & deploy (2–5 phút). Kiểm tra web thật:
+`/api/chat` trả `{"error":"not_configured"}` nghĩa là Worker chạy nhưng thiếu khoá; trả `{"reply":…}` là AI đang chạy.
+
 ## Chống lạm dụng & chi phí
 
 - Mỗi IP tối đa 20 lượt / phút (`ratelimits` trong `wrangler.jsonc`).
