@@ -5,6 +5,7 @@ import { MotionProvider } from "@/components/ui/Reveal";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import FloatingContacts from "@/components/layout/FloatingContacts";
+import ConsultChat from "@/components/layout/ConsultChat";
 import { SITE } from "@/lib/site";
 
 const roboto = Roboto({
@@ -38,6 +39,7 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
           <FloatingContacts />
+          <ConsultChat />
         </MotionProvider>
       </body>
     </html>
