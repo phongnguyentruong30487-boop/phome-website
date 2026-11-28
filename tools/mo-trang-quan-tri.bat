@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-cd /d "D:\001.CLAUDE CODE\2.phome-website\nextjs-app"
+cd /d "D:\001.CLAUDE CODE\2.phome-website\nextjs-app\tools\admin"
 echo.
 echo ================================================
 echo   Dang mo Trang Quan Tri (sua gia / san pham / blog)
@@ -10,5 +10,5 @@ echo Dung dong y nay lai khi dang sua du lieu.
 echo Khi sua xong, dong cua so nay lai la duoc.
 echo.
 start "" http://localhost:3000
-npx serve tools/admin
+npx serve -l 3000 .
 pause
